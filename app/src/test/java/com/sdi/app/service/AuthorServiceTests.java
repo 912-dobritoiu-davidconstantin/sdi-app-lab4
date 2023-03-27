@@ -24,6 +24,9 @@ public class AuthorServiceTests {
     @Mock
     private BookRepository bookRepository;
 
+    @Mock
+    private BookService bookService;
+
     @Test
     public void testGetAuthorBookCounts() {
         // create test data
