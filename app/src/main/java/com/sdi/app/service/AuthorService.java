@@ -1,0 +1,106 @@
+package com.sdi.app.service;
+
+import com.sdi.app.dto.*;
+import com.sdi.app.model.Author;
+import com.sdi.app.model.Book;
+import com.sdi.app.model.LibraryBook;
+import com.sdi.app.repository.AuthorRepository;
+import com.sdi.app.repository.BookRepository;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+public class AuthorService {
+
+    @Autowired
+    private final AuthorRepository authorRepository;
+
+    @Autowired
+    private final BookRepository bookRepository;
+
+    @Autowired
+    private final BookService bookService;
+    @Autowired
+    private ModelMapper modelMapper;
+
+    public AuthorService(AuthorRepository authorRepository, BookRepository bookRepository, BookService bookService) {
+        this.authorRepository = authorRepository;
+        this.bookRepository = bookRepository;
+        this.bookService = bookService;
+    }
+
+    public List<AuthorDTO> getAllAuthors() {
+        List<Author> authors = authorRepository.findAll();
+        return authors.stream()
+                .map(author -> modelMapper.map(author, AuthorDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public AuthorWithBookDTO getAuthorById(Long id) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Author not found"));
+        List<Book> books = author.getBooks();
+        List<BookForAuthorDTO> addBooks = new ArrayList<>();
+        for(Book book : books)
+        {
+            BookForAuthorDTO bookDTO = modelMapper.map(book, BookForAuthorDTO.class);
+
+            Set<LibraryBook> libraryBooks = bookService.findLibraryBooksByBookId(bookDTO.getId());
+            Set<LibrariesBookDTO> libraryBookDTOs = libraryBooks.stream()
+                    .map(libraryBook -> modelMapper.map(libraryBook, LibrariesBookDTO.class))
+                    .collect(Collectors.toSet());
+
+            bookDTO.setLibraries(libraryBookDTOs);
+            addBooks.add(bookDTO);
+        }
+
+        AuthorWithBookDTO authorDTO = modelMapper.map(author, AuthorWithBookDTO.class);
+        authorDTO.setBooks(addBooks);
+
+        return authorDTO;
+    }
+
+    public Author createAuthor(AuthorDTO authorDTO) {
+        Author author = new Author(null, authorDTO.getName(), authorDTO.getEmail(), authorDTO.getBio(), authorDTO.getCountry(), new ArrayList<>());
+        return authorRepository.save(author);
+    }
+
+    public Author updateAuthor(Long id, AuthorDTO authorDTO) {
+        Author author = authorRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Author not found"));
+        author.setName(authorDTO.getName());
+        author.setEmail(authorDTO.getEmail());
+        author.setBio(authorDTO.getBio());
+        author.setCountry(authorDTO.getCountry());
+        author.setBooks(author.getBooks());
+        return authorRepository.save(author);
+    }
+
+    public void deleteAuthor(Long id) {
+        Author author = authorRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Author not found"));
+        authorRepository.delete(author);
+    }
+
+    public List<AuthorStatisticsDTO> getAuthorBookCounts() {
+        List<Author> authors = authorRepository.findAll();
+        List<AuthorStatisticsDTO> authorBookCountDTOs = new ArrayList<>();
+        for (Author author : authors) {
+            int bookCount = bookRepository.countByAuthor(author);
+            AuthorStatisticsDTO authorBookCountDTO = new AuthorStatisticsDTO(author.getId(), author.getName(), bookCount);
+            authorBookCountDTOs.add(authorBookCountDTO);
+        }
+
+        authorBookCountDTOs.sort((dto1, dto2) -> Integer.compare(dto2.getBooksCount(), dto1.getBooksCount()));
+
+        return authorBookCountDTOs;
+    }
+
+
+}
