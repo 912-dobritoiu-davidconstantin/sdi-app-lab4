@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/libraries")
+@RequestMapping("/api/libraries")
 public class LibraryController {
 
     private final LibraryService libraryService;
