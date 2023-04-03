@@ -1,12 +1,13 @@
 package com.sdi.app.controller;
 
-import com.sdi.app.dto.AuthorDTO;
-import com.sdi.app.dto.AuthorStatisticsDTO;
-import com.sdi.app.dto.AuthorWithBookDTO;
-import com.sdi.app.dto.LibraryStatisticsDTO;
+import com.sdi.app.dto.*;
 import com.sdi.app.model.Author;
+import com.sdi.app.model.Book;
 import com.sdi.app.service.AuthorService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -45,9 +46,14 @@ public class AuthorController {
         authorService.deleteAuthor(id);
     }
 
-    @GetMapping("/topBooks")
-    public List<AuthorStatisticsDTO> getBooksTop()
-    {
-        return authorService.getAuthorBookCounts();
+    @GetMapping("/filterAuthorsByNumberOfBooks")
+    public List<AuthorStatisticsDTO> getBooksTop() { return authorService.getAuthorBookCounts(); }
+
+    @PostMapping("/{authorId}/books")
+    public ResponseEntity<AuthorResponseDTO>addBooksToAuthor(@PathVariable Long authorId,
+                                                              @RequestBody List<BookRequestDTO> bookRequestDTOs) {
+        Author author = authorService.addBooksToAuthor(authorId, bookRequestDTOs);
+        AuthorResponseDTO authorResponseDTO = new AuthorResponseDTO(author);
+        return ResponseEntity.ok().body(authorResponseDTO);
     }
 }

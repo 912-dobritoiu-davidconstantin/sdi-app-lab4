@@ -113,6 +113,4 @@ public class BookService {
         return book.getLibraries();
     }
 
-
-
 }

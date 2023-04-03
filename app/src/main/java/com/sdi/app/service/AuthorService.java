@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -102,5 +103,23 @@ public class AuthorService {
         return authorBookCountDTOs;
     }
 
+    public Author addBooksToAuthor(Long authorId, List<BookRequestDTO> bookRequestDTOs) {
+        Author author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Author not found"));
+
+        List<Book> books = new ArrayList<>();
+        for (BookRequestDTO bookRequestDTO : bookRequestDTOs) {
+            Book book = new Book();
+            book.setTitle(bookRequestDTO.getTitle());
+            book.setYear(bookRequestDTO.getYear());
+            book.setPrice(bookRequestDTO.getPrice());
+            book.setRating(bookRequestDTO.getRating());
+            book.setAuthor(author);
+            books.add(book);
+        }
+        author.getBooks().addAll(books);
+
+        return authorRepository.save(author);
+    }
 
 }
