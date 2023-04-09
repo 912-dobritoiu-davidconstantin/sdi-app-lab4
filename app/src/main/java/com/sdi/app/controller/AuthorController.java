@@ -61,7 +61,7 @@ public class AuthorController {
     }
 
     @GetMapping("/count")
-    public Long countAuthors() {
+    public long countAuthors() {
         return authorService.countAuthors();
     }
 }

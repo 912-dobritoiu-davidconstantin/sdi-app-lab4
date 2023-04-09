@@ -128,7 +128,7 @@ public class AuthorService {
         return authorRepository.save(author);
     }
 
-    public Long countAuthors(){
+    public long countAuthors(){
         return authorRepository.count();
     }
 }
