@@ -8,10 +8,14 @@ import com.sdi.app.repository.AuthorRepository;
 import com.sdi.app.repository.BookRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.awt.print.Pageable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,11 +42,13 @@ public class AuthorService {
         this.bookService = bookService;
     }
 
-    public List<AuthorDTO> getAllAuthors() {
-        List<Author> authors = authorRepository.findAll();
-        return authors.stream()
+    public Page<AuthorDTO> getAllAuthors(int pageNumber, int pageSize) {
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+        Page<Author> authors = authorRepository.findAll(pageRequest);
+        List<AuthorDTO> authorDTOs = authors.stream()
                 .map(author -> modelMapper.map(author, AuthorDTO.class))
                 .collect(Collectors.toList());
+        return new PageImpl<>(authorDTOs, pageRequest, authors.getTotalElements());
     }
 
     public AuthorWithBookDTO getAuthorById(Long id) {
@@ -121,5 +127,4 @@ public class AuthorService {
 
         return authorRepository.save(author);
     }
-
 }

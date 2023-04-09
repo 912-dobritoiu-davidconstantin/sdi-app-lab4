@@ -4,11 +4,13 @@ import com.sdi.app.dto.*;
 import com.sdi.app.model.Author;
 import com.sdi.app.model.Book;
 import com.sdi.app.service.AuthorService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.awt.print.Pageable;
 import java.util.List;
 
 @RestController
@@ -22,8 +24,9 @@ public class AuthorController {
     }
 
     @GetMapping
-    public List<AuthorDTO> getAllAuthors() {
-        return authorService.getAllAuthors();
+    public Page<AuthorDTO> getAllAuthors(@RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "100") int size) {
+        return authorService.getAllAuthors(page, size);
     }
 
     @GetMapping("/{id}")
