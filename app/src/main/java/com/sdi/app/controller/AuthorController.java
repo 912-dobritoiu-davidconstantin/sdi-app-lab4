@@ -59,4 +59,9 @@ public class AuthorController {
         AuthorResponseDTO authorResponseDTO = new AuthorResponseDTO(author);
         return ResponseEntity.ok().body(authorResponseDTO);
     }
+
+    @GetMapping("/count")
+    public Long countAuthors() {
+        return authorService.countAuthors();
+    }
 }
