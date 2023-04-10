@@ -16,10 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.awt.print.Pageable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,6 +45,7 @@ public class AuthorService {
         List<AuthorDTO> authorDTOs = authors.stream()
                 .map(author -> modelMapper.map(author, AuthorDTO.class))
                 .collect(Collectors.toList());
+        Collections.shuffle(authorDTOs);
         return new PageImpl<>(authorDTOs, pageRequest, authors.getTotalElements());
     }
 
