@@ -1,6 +1,7 @@
 package com.sdi.app.service;
 
 import com.sdi.app.dto.LibraryBookDTO;
+import com.sdi.app.dto.LibraryBookWithNamesDTO;
 import com.sdi.app.model.Book;
 import com.sdi.app.model.Library;
 import com.sdi.app.model.LibraryBook;
@@ -9,10 +10,14 @@ import com.sdi.app.repository.LibraryBookRepository;
 import com.sdi.app.repository.LibraryRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,17 +43,19 @@ public class LibraryBookService {
         this.modelMapper = modelMapper;
     }
 
-    public List<LibraryBookDTO> getAllLibraryBooks() {
-        List<LibraryBook> libraryBooks = libraryBookRepository.findAll();
-        return libraryBooks.stream()
-                .map(libraryBook -> modelMapper.map(libraryBook, LibraryBookDTO.class))
-                .collect(Collectors.toList());
+    public Page<LibraryBookWithNamesDTO> getAllLibraryBooks(int pageNumber, int pageSize) {
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+        Page<LibraryBook> libraries = libraryBookRepository.findAll(pageRequest);
+        List<LibraryBookWithNamesDTO> libraryDTO = new java.util.ArrayList<>(libraries.stream()
+                .map(library -> modelMapper.map(library, LibraryBookWithNamesDTO.class)).toList());
+        Collections.shuffle(libraryDTO);
+        return new PageImpl<>(libraryDTO, pageRequest, libraries.getTotalElements());
     }
 
-    public LibraryBookDTO getLibraryBookById(Long id) {
+    public LibraryBookWithNamesDTO getLibraryBookById(Long id) {
         LibraryBook libraryBook = libraryBookRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Library book not found"));
-        return modelMapper.map(libraryBook, LibraryBookDTO.class);
+        return modelMapper.map(libraryBook, LibraryBookWithNamesDTO.class);
     }
 
     public LibraryBook createLibraryBook(LibraryBookDTO libraryBookIDDTO) {

@@ -1,23 +1,21 @@
 package com.sdi.app.service;
 
-import com.sdi.app.dto.LibrariesBookDTO;
-import com.sdi.app.dto.LibraryBooksDTO;
-import com.sdi.app.dto.LibraryDTO;
-import com.sdi.app.dto.LibraryStatisticsDTO;
+import com.sdi.app.dto.*;
+import com.sdi.app.model.Author;
 import com.sdi.app.model.Library;
 import com.sdi.app.model.LibraryBook;
 import com.sdi.app.repository.LibraryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,11 +31,13 @@ public class LibraryService {
         this.libraryRepository = libraryRepository;
     }
 
-    public List<LibraryDTO> getAllLibraries() {
-        List<Library> libraries = libraryRepository.findAll();
-        return libraries.stream()
-                .map(library -> modelMapper.map(library, LibraryDTO.class))
-                .collect(Collectors.toList());
+    public Page<LibraryAllDTO> getAllLibraries(int pageNumber, int pageSize) {
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+        Page<Library> libraries = libraryRepository.findAll(pageRequest);
+        List<LibraryAllDTO> libraryDTOs = new ArrayList<>(libraries.stream()
+                .map(library -> modelMapper.map(library, LibraryAllDTO.class)).toList());
+        Collections.shuffle(libraryDTOs);
+        return new PageImpl<>(libraryDTOs, pageRequest, libraries.getTotalElements());
     }
 
     public LibraryDTO getLibraryById(Long id) {

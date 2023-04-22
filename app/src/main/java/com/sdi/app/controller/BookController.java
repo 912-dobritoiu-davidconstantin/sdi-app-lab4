@@ -1,9 +1,11 @@
 package com.sdi.app.controller;
 
+import com.sdi.app.dto.AuthorDTO;
 import com.sdi.app.dto.BookDTO;
 import com.sdi.app.dto.BookWithAuthorIDDTO;
 import com.sdi.app.model.Book;
 import com.sdi.app.service.BookService;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,10 +21,10 @@ public class BookController {
     }
 
     @GetMapping
-    public List<BookWithAuthorIDDTO> getAllBooks() {
-        return bookService.getAllBooks();
+    public Page<BookWithAuthorIDDTO> getAllBooks(@RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "100") int size) {
+        return bookService.getAllBooks(page, size);
     }
-
     @GetMapping("/{id}")
     public BookDTO getBookById(@PathVariable Long id) {
         return bookService.getBookById(id);

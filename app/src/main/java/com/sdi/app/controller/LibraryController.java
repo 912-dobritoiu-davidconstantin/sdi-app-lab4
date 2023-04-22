@@ -1,9 +1,12 @@
 package com.sdi.app.controller;
 
+import com.sdi.app.dto.AuthorDTO;
+import com.sdi.app.dto.LibraryAllDTO;
 import com.sdi.app.dto.LibraryDTO;
 import com.sdi.app.dto.LibraryStatisticsDTO;
 import com.sdi.app.model.Library;
 import com.sdi.app.service.LibraryService;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,10 +23,10 @@ public class LibraryController {
     }
 
     @GetMapping
-    public List<LibraryDTO> getAllLibraries() {
-        return libraryService.getAllLibraries();
+    public Page<LibraryAllDTO> getAllLibraries(@RequestParam(defaultValue = "0") int page,
+                                               @RequestParam(defaultValue = "100") int size) {
+        return libraryService.getAllLibraries(page, size);
     }
-
     @GetMapping("/{id}")
     public LibraryDTO getLibraryById(@PathVariable Long id) {
         return libraryService.getLibraryById(id);

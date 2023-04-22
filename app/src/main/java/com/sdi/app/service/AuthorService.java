@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -54,8 +55,7 @@ public class AuthorService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Author not found"));
         List<Book> books = author.getBooks();
         List<BookForAuthorDTO> addBooks = new ArrayList<>();
-        for(Book book : books)
-        {
+        for (Book book : books) {
             BookForAuthorDTO bookDTO = modelMapper.map(book, BookForAuthorDTO.class);
 
             Set<LibraryBook> libraryBooks = bookService.findLibraryBooksByBookId(bookDTO.getId());
@@ -93,19 +93,20 @@ public class AuthorService {
         authorRepository.delete(author);
     }
 
-    public List<AuthorStatisticsDTO> getAuthorBookCounts() {
-        List<Author> authors = authorRepository.findAll();
+    public List<AuthorStatisticsDTO> getAuthorBookCounts(int books, int pageNumber, int pageSize) {
+        PageRequest pageable = PageRequest.of(pageNumber, pageSize, Sort.by("booksCount").descending());
+        List<Author> authors = authorRepository.findAll(pageable).getContent();
         List<AuthorStatisticsDTO> authorBookCountDTOs = new ArrayList<>();
         for (Author author : authors) {
             int bookCount = bookRepository.countByAuthor(author);
-            AuthorStatisticsDTO authorBookCountDTO = new AuthorStatisticsDTO(author.getId(), author.getName(), bookCount);
-            authorBookCountDTOs.add(authorBookCountDTO);
+            if (bookCount > books) {
+                AuthorStatisticsDTO authorBookCountDTO = new AuthorStatisticsDTO(author.getId(), author.getName(), bookCount);
+                authorBookCountDTOs.add(authorBookCountDTO);
+            }
         }
-
-        authorBookCountDTOs.sort((dto1, dto2) -> Integer.compare(dto2.getBooksCount(), dto1.getBooksCount()));
-
         return authorBookCountDTOs;
     }
+
 
     public Author addBooksToAuthor(Long authorId, List<BookRequestDTO> bookRequestDTOs) {
         Author author = authorRepository.findById(authorId)
@@ -126,7 +127,7 @@ public class AuthorService {
         return authorRepository.save(author);
     }
 
-    public long countAuthors(){
+    public long countAuthors() {
         return authorRepository.count();
     }
 }
