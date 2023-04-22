@@ -99,7 +99,7 @@ public class AuthorService {
         List<AuthorStatisticsDTO> authorBookCountDTOs = new ArrayList<>();
         for (Author author : authors) {
             int bookCount = bookRepository.countByAuthor(author);
-            if (bookCount > books) {
+            if (bookCount >= books) {
                 AuthorStatisticsDTO authorBookCountDTO = new AuthorStatisticsDTO(author.getId(), author.getName(), bookCount);
                 authorBookCountDTOs.add(authorBookCountDTO);
             }

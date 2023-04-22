@@ -14,6 +14,9 @@ import com.sdi.app.repository.BookRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @SpringBootTest
 public class AuthorServiceTests {
@@ -39,13 +42,14 @@ public class AuthorServiceTests {
         List<Book> books = Arrays.asList(book1, book2, book3);
 
         // mock repository
-        when(authorRepository.findAll()).thenReturn(authors);
+        PageRequest pageable = PageRequest.of(0, 100, Sort.by("booksCount").descending());
+        when(authorRepository.findAll(pageable)).thenReturn(new PageImpl<>(authors));
         when(bookRepository.countByAuthor(author1)).thenReturn(2);
         when(bookRepository.countByAuthor(author2)).thenReturn(1);
 
         // call service method
         AuthorService authorService = new AuthorService(authorRepository, bookRepository, bookService);
-        List<AuthorStatisticsDTO> result = authorService.getAuthorBookCounts();
+        List<AuthorStatisticsDTO> result = authorService.getAuthorBookCounts(0, 0, 100);
 
         // verify result
         List<AuthorStatisticsDTO> expected = Arrays.asList(
