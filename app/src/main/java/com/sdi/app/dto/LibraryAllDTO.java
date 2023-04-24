@@ -22,4 +22,6 @@ public class LibraryAllDTO {
     private int rating;
 
     private String owner;
+
+    private int booksCount;
 }

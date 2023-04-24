@@ -44,9 +44,13 @@ public class AuthorService {
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
         Page<Author> authors = authorRepository.findAll(pageRequest);
         List<AuthorDTO> authorDTOs = authors.stream()
-                .map(author -> modelMapper.map(author, AuthorDTO.class))
+                .map(author -> {
+                    AuthorDTO authorDTO = modelMapper.map(author, AuthorDTO.class);
+                    int numBooks = author.getBooks().size();
+                    authorDTO.setBooksCount(numBooks);
+                    return authorDTO;
+                })
                 .collect(Collectors.toList());
-        Collections.shuffle(authorDTOs);
         return new PageImpl<>(authorDTOs, pageRequest, authors.getTotalElements());
     }
 
@@ -108,16 +112,19 @@ public class AuthorService {
     }
 
     public List<AuthorStatisticsDTO> getAuthorsTop(int pageNumber, int pageSize) {
-        PageRequest pageable = PageRequest.of(pageNumber, pageSize, Sort.by("booksCount").descending());
-        List<Author> authors = authorRepository.findAll(pageable).getContent();
+        PageRequest pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.ASC, "books");
+        Page<Author> authorsPage = authorRepository.findAll(pageable);
+        List<Author> authors = authorsPage.getContent();
         List<AuthorStatisticsDTO> authorBookCountDTOs = new ArrayList<>();
         for (Author author : authors) {
-            int bookCount = bookRepository.countByAuthor(author);
+            int bookCount = author.getBooks().size();
             AuthorStatisticsDTO authorBookCountDTO = new AuthorStatisticsDTO(author.getId(), author.getName(), bookCount);
             authorBookCountDTOs.add(authorBookCountDTO);
         }
         return authorBookCountDTOs;
     }
+
+
 
 
     public Author addBooksToAuthor(Long authorId, List<BookRequestDTO> bookRequestDTOs) {

@@ -19,5 +19,6 @@ public class AuthorDTO {
 
     private String country;
 
+    private int booksCount;
 
 }

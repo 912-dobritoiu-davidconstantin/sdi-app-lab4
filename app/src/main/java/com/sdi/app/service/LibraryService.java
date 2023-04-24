@@ -35,9 +35,14 @@ public class LibraryService {
     public Page<LibraryAllDTO> getAllLibraries(int pageNumber, int pageSize) {
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
         Page<Library> libraries = libraryRepository.findAll(pageRequest);
-        List<LibraryAllDTO> libraryDTOs = new ArrayList<>(libraries.stream()
-                .map(library -> modelMapper.map(library, LibraryAllDTO.class)).toList());
-        Collections.shuffle(libraryDTOs);
+        List<LibraryAllDTO> libraryDTOs = libraries.stream()
+                .map(library -> {
+                    LibraryAllDTO libraryDTO = modelMapper.map(library, LibraryAllDTO.class);
+                    int numBooks = library.getBooks().size();
+                    libraryDTO.setBooksCount(numBooks);
+                    return libraryDTO;
+                })
+                .collect(Collectors.toList());
         return new PageImpl<>(libraryDTOs, pageRequest, libraries.getTotalElements());
     }
 
@@ -84,7 +89,7 @@ public class LibraryService {
     }
 
     public List<LibraryStatisticsDTO> getLibrariesWithBookCount(int pageNumber, int pageSize) {
-        PageRequest pageable = PageRequest.of(pageNumber, pageSize, Sort.by("booksCount").descending());
+        PageRequest pageable = PageRequest.of(pageNumber, pageSize);
         List<Library> libraries = libraryRepository.findAll(pageable).getContent();
         List<LibraryStatisticsDTO> libraryDTOs = new ArrayList<>();
         for (Library library : libraries) {
