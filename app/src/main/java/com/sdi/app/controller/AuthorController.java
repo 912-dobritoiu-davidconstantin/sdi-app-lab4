@@ -57,7 +57,7 @@ public class AuthorController {
     }
 
     @GetMapping("/getAuthorsTop")
-    public List<AuthorStatisticsDTO> getAuthorsTop(
+    public Page<AuthorStatisticsDTO> getAuthorsTop(
                                                  @RequestParam(defaultValue = "0") int page,
                                                  @RequestParam(defaultValue = "100") int size) {
         return authorService.getAuthorsTop(page, size);

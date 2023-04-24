@@ -111,7 +111,7 @@ public class AuthorService {
         return authorBookCountDTOs;
     }
 
-    public List<AuthorStatisticsDTO> getAuthorsTop(int pageNumber, int pageSize) {
+    public Page<AuthorStatisticsDTO> getAuthorsTop(int pageNumber, int pageSize) {
         PageRequest pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.ASC, "books");
         Page<Author> authorsPage = authorRepository.findAll(pageable);
         List<Author> authors = authorsPage.getContent();
@@ -121,10 +121,8 @@ public class AuthorService {
             AuthorStatisticsDTO authorBookCountDTO = new AuthorStatisticsDTO(author.getId(), author.getName(), bookCount);
             authorBookCountDTOs.add(authorBookCountDTO);
         }
-        return authorBookCountDTOs;
+        return new PageImpl<>(authorBookCountDTOs, pageable, authorsPage.getTotalElements());
     }
-
-
 
 
     public Author addBooksToAuthor(Long authorId, List<BookRequestDTO> bookRequestDTOs) {
