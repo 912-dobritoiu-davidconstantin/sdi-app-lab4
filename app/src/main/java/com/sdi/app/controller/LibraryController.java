@@ -48,8 +48,9 @@ public class LibraryController {
     }
 
     @GetMapping("/getLibrariesTop")
-    public List<LibraryStatisticsDTO> getBooksTop()
+    public List<LibraryStatisticsDTO> getBooksTop(@RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "100") int size)
     {
-        return libraryService.getLibrariesWithBookCount();
+        return libraryService.getLibrariesWithBookCount(page, size);
     }
 }

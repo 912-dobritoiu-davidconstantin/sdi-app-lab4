@@ -42,7 +42,7 @@ public class AuthorServiceTests {
         List<Book> books = Arrays.asList(book1, book2, book3);
 
         // mock repository
-        PageRequest pageable = PageRequest.of(0, 100, Sort.by("booksCount").descending());
+        PageRequest pageable = PageRequest.of(0, 100);
         when(authorRepository.findAll(pageable)).thenReturn(new PageImpl<>(authors));
         when(bookRepository.countByAuthor(author1)).thenReturn(2);
         when(bookRepository.countByAuthor(author2)).thenReturn(1);

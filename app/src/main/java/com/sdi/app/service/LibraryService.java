@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -82,12 +83,13 @@ public class LibraryService {
         return library.getBooks();
     }
 
-    public List<LibraryStatisticsDTO> getLibrariesWithBookCount() {
-        List<Library> libraries = libraryRepository.findAll();
+    public List<LibraryStatisticsDTO> getLibrariesWithBookCount(int pageNumber, int pageSize) {
+        PageRequest pageable = PageRequest.of(pageNumber, pageSize, Sort.by("booksCount").descending());
+        List<Library> libraries = libraryRepository.findAll(pageable).getContent();
         List<LibraryStatisticsDTO> libraryDTOs = new ArrayList<>();
         for (Library library : libraries) {
             int bookCount = library.getBooks().size();
-            LibraryStatisticsDTO libraryDTO = new LibraryStatisticsDTO(library.getId(), bookCount);
+            LibraryStatisticsDTO libraryDTO = new LibraryStatisticsDTO(library.getId(), library.getName(), bookCount);
             libraryDTOs.add(libraryDTO);
         }
 

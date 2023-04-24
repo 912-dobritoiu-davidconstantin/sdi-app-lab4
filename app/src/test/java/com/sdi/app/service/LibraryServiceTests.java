@@ -16,6 +16,10 @@ import com.sdi.app.repository.LibraryRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @SpringBootTest
 public class LibraryServiceTests {
@@ -37,17 +41,20 @@ public class LibraryServiceTests {
         List<Library> libraries = Arrays.asList(library1, library2);
 
         // mock repository
-        when(libraryRepository.findAll()).thenReturn(libraries);
+        PageRequest pageable = PageRequest.of(0, 100, Sort.by("booksCount").descending());
+        Page<Library> page = new PageImpl<>(libraries, pageable, libraries.size());
+        when(libraryRepository.findAll(pageable)).thenReturn(page);
 
         // call service method
         LibraryService libraryService = new LibraryService(libraryRepository);
-        List<LibraryStatisticsDTO> result = libraryService.getLibrariesWithBookCount();
+        List<LibraryStatisticsDTO> result = libraryService.getLibrariesWithBookCount(0, 100);
 
         // verify result
         List<LibraryStatisticsDTO> expected = Arrays.asList(
-                new LibraryStatisticsDTO(1L, 1), // library1 has 1 book
-                new LibraryStatisticsDTO(2L, 1)  // library2 has 1 book
+                new LibraryStatisticsDTO(1L, "Library 1", 1), // library1 has 1 book
+                new LibraryStatisticsDTO(2L, "Library 2", 1)  // library2 has 1 book
         );
         assertEquals(expected, result);
     }
+
 }
