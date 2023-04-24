@@ -41,7 +41,7 @@ public class LibraryServiceTests {
         List<Library> libraries = Arrays.asList(library1, library2);
 
         // mock repository
-        PageRequest pageable = PageRequest.of(0, 100, Sort.by("booksCount").descending());
+        PageRequest pageable = PageRequest.of(0, 100);
         Page<Library> page = new PageImpl<>(libraries, pageable, libraries.size());
         when(libraryRepository.findAll(pageable)).thenReturn(page);
 
