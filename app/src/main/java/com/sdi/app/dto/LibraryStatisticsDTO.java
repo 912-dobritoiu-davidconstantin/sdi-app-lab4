@@ -9,5 +9,7 @@ public class LibraryStatisticsDTO {
 
     private Long libraryId;
 
+    private String libraryName;
+
     private int booksCount;
 }

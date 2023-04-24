@@ -47,7 +47,7 @@ public class LibraryController {
         libraryService.deleteLibrary(id);
     }
 
-    @GetMapping("/topBooks")
+    @GetMapping("/getLibrariesTop")
     public List<LibraryStatisticsDTO> getBooksTop()
     {
         return libraryService.getLibrariesWithBookCount();

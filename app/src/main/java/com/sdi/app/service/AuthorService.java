@@ -94,7 +94,7 @@ public class AuthorService {
     }
 
     public List<AuthorStatisticsDTO> getAuthorBookCounts(int books, int pageNumber, int pageSize) {
-        PageRequest pageable = PageRequest.of(pageNumber, pageSize, Sort.by("booksCount").descending());
+        PageRequest pageable = PageRequest.of(pageNumber, pageSize);
         List<Author> authors = authorRepository.findAll(pageable).getContent();
         List<AuthorStatisticsDTO> authorBookCountDTOs = new ArrayList<>();
         for (Author author : authors) {
@@ -103,6 +103,18 @@ public class AuthorService {
                 AuthorStatisticsDTO authorBookCountDTO = new AuthorStatisticsDTO(author.getId(), author.getName(), bookCount);
                 authorBookCountDTOs.add(authorBookCountDTO);
             }
+        }
+        return authorBookCountDTOs;
+    }
+
+    public List<AuthorStatisticsDTO> getAuthorsTop(int pageNumber, int pageSize) {
+        PageRequest pageable = PageRequest.of(pageNumber, pageSize, Sort.by("booksCount").descending());
+        List<Author> authors = authorRepository.findAll(pageable).getContent();
+        List<AuthorStatisticsDTO> authorBookCountDTOs = new ArrayList<>();
+        for (Author author : authors) {
+            int bookCount = bookRepository.countByAuthor(author);
+            AuthorStatisticsDTO authorBookCountDTO = new AuthorStatisticsDTO(author.getId(), author.getName(), bookCount);
+            authorBookCountDTOs.add(authorBookCountDTO);
         }
         return authorBookCountDTOs;
     }

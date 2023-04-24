@@ -50,10 +50,17 @@ public class AuthorController {
     }
 
     @GetMapping("/filterAuthorsByNumberOfBooks")
-    public List<AuthorStatisticsDTO> getBooksTop(@RequestParam int count,
+    public List<AuthorStatisticsDTO> filterBooks(@RequestParam int count,
                                                  @RequestParam(defaultValue = "0") int page,
                                                  @RequestParam(defaultValue = "100") int size) {
         return authorService.getAuthorBookCounts(count, page, size);
+    }
+
+    @GetMapping("/getAuthorsTop")
+    public List<AuthorStatisticsDTO> getAuthorsTop(
+                                                 @RequestParam(defaultValue = "0") int page,
+                                                 @RequestParam(defaultValue = "100") int size) {
+        return authorService.getAuthorsTop(page, size);
     }
 
     @PostMapping("/{authorId}/books")
