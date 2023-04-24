@@ -88,9 +88,10 @@ public class LibraryService {
         return library.getBooks();
     }
 
-    public List<LibraryStatisticsDTO> getLibrariesWithBookCount(int pageNumber, int pageSize) {
+    public Page<LibraryStatisticsDTO> getLibrariesWithBookCount(int pageNumber, int pageSize) {
         PageRequest pageable = PageRequest.of(pageNumber, pageSize);
-        List<Library> libraries = libraryRepository.findAll(pageable).getContent();
+        Page<Library> libraryPage = libraryRepository.findAll(pageable);
+        List<Library> libraries = libraryPage.getContent();
         List<LibraryStatisticsDTO> libraryDTOs = new ArrayList<>();
         for (Library library : libraries) {
             int bookCount = library.getBooks().size();
@@ -100,7 +101,7 @@ public class LibraryService {
 
         libraryDTOs.sort((dto1, dto2) -> Integer.compare(dto2.getBooksCount(), dto1.getBooksCount()));
 
-        return libraryDTOs;
+        return new PageImpl<>(libraryDTOs, pageable, libraryPage.getTotalElements());
     }
 
     public long countLibraries() {

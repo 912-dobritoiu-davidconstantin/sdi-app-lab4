@@ -50,7 +50,7 @@ public class AuthorController {
     }
 
     @GetMapping("/filterAuthorsByNumberOfBooks")
-    public List<AuthorStatisticsDTO> filterBooks(@RequestParam int count,
+    public Page<AuthorStatisticsDTO> filterBooks(@RequestParam int count,
                                                  @RequestParam(defaultValue = "0") int page,
                                                  @RequestParam(defaultValue = "100") int size) {
         return authorService.getAuthorBookCounts(count, page, size);

@@ -47,14 +47,14 @@ public class LibraryServiceTests {
 
         // call service method
         LibraryService libraryService = new LibraryService(libraryRepository);
-        List<LibraryStatisticsDTO> result = libraryService.getLibrariesWithBookCount(0, 100);
+        Page<LibraryStatisticsDTO> result = libraryService.getLibrariesWithBookCount(0, 100);
 
         // verify result
         List<LibraryStatisticsDTO> expected = Arrays.asList(
                 new LibraryStatisticsDTO(1L, "Library 1", 1), // library1 has 1 book
                 new LibraryStatisticsDTO(2L, "Library 2", 1)  // library2 has 1 book
         );
-        assertEquals(expected, result);
+        assertEquals(expected, result.getContent());
     }
 
 }

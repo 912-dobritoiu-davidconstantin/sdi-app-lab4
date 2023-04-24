@@ -97,9 +97,10 @@ public class AuthorService {
         authorRepository.delete(author);
     }
 
-    public List<AuthorStatisticsDTO> getAuthorBookCounts(int books, int pageNumber, int pageSize) {
+    public Page<AuthorStatisticsDTO> getAuthorBookCounts(int books, int pageNumber, int pageSize) {
         PageRequest pageable = PageRequest.of(pageNumber, pageSize);
-        List<Author> authors = authorRepository.findAll(pageable).getContent();
+        Page<Author> authorsPage = authorRepository.findAll(pageable);
+        List<Author> authors = authorsPage.getContent();
         List<AuthorStatisticsDTO> authorBookCountDTOs = new ArrayList<>();
         for (Author author : authors) {
             int bookCount = bookRepository.countByAuthor(author);
@@ -108,7 +109,7 @@ public class AuthorService {
                 authorBookCountDTOs.add(authorBookCountDTO);
             }
         }
-        return authorBookCountDTOs;
+        return new PageImpl<>(authorBookCountDTOs, pageable, authorsPage.getTotalElements());
     }
 
     public Page<AuthorStatisticsDTO> getAuthorsTop(int pageNumber, int pageSize) {
