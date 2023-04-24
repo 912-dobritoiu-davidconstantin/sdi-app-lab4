@@ -115,4 +115,8 @@ public class BookService {
         return book.getLibraries();
     }
 
+    public long countBooks() {
+        return bookRepository.count();
+    }
+
 }

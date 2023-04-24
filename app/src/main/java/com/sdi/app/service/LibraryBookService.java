@@ -87,4 +87,8 @@ public class LibraryBookService {
         libraryBookRepository.delete(libraryBook);
     }
 
+    public long countLibraryBooks() {
+        return libraryBookRepository.count();
+    }
+
 }

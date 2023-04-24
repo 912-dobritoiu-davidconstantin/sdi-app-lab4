@@ -44,4 +44,9 @@ public class LibraryBookController {
     public void deleteLibraryBook(@PathVariable Long id) {
         libraryBookService.deleteLibraryBook(id);
     }
+
+    @GetMapping("/count")
+    public long countLibraryBooks() {
+        return libraryBookService.countLibraryBooks();
+    }
 }

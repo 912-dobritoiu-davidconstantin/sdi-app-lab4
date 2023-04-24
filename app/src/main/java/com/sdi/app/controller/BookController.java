@@ -49,4 +49,9 @@ public class BookController {
     public void deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
     }
+
+    @GetMapping("/count")
+    public long countBooks() {
+        return bookService.countBooks();
+    }
 }

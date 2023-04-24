@@ -102,4 +102,8 @@ public class LibraryService {
 
         return libraryDTOs;
     }
+
+    public long countLibraries() {
+        return libraryRepository.count();
+    }
 }

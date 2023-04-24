@@ -53,4 +53,9 @@ public class LibraryController {
     {
         return libraryService.getLibrariesWithBookCount(page, size);
     }
+
+    @GetMapping("/count")
+    public long countLibraries() {
+        return libraryService.countLibraries();
+    }
 }
