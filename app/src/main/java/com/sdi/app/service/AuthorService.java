@@ -1,13 +1,13 @@
 package com.sdi.app.service;
 
 import com.sdi.app.dto.*;
-import com.sdi.app.model.Author;
-import com.sdi.app.model.Book;
-import com.sdi.app.model.LibraryBook;
+import com.sdi.app.exception.UserNotAuthorizedException;
+import com.sdi.app.exception.UserNotFoundException;
+import com.sdi.app.model.*;
 import com.sdi.app.repository.AuthorRepository;
 import com.sdi.app.repository.BookRepository;
+import com.sdi.app.repository.UserRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -16,28 +16,27 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.awt.print.Pageable;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class AuthorService {
 
-    @Autowired
     private final AuthorRepository authorRepository;
 
-    @Autowired
     private final BookRepository bookRepository;
 
-    @Autowired
     private final BookService bookService;
-    @Autowired
-    private ModelMapper modelMapper;
 
-    public AuthorService(AuthorRepository authorRepository, BookRepository bookRepository, BookService bookService) {
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
+
+    public AuthorService(AuthorRepository authorRepository, BookRepository bookRepository, BookService bookService, UserRepository userRepository, ModelMapper modelMapper) {
         this.authorRepository = authorRepository;
         this.bookRepository = bookRepository;
         this.bookService = bookService;
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
     }
 
     public Page<AuthorDTO> getAllAuthors(int pageNumber, int pageSize) {
@@ -77,23 +76,63 @@ public class AuthorService {
         return authorDTO;
     }
 
-    public Author createAuthor(AuthorDTO authorDTO) {
-        Author author = new Author(null, authorDTO.getName(), authorDTO.getEmail(), authorDTO.getBio(), authorDTO.getCountry(), new ArrayList<>());
+    public Author createAuthor(AuthorDTO authorDTO, Long userID) {
+        User user = this.userRepository.findById(userID).orElseThrow(() -> new UserNotFoundException(userID));
+        Author author = new Author(null, authorDTO.getName(), authorDTO.getEmail(), authorDTO.getBio(), authorDTO.getCountry(), new ArrayList<>(), user);
+        authorDTO.setUsername(user.getUsername());
+
+        boolean userOrModOrAdmin = user.getRoles().stream().anyMatch((role) ->
+                role.getName() == ERole.ROLE_ADMIN
+                        || role.getName() == ERole.ROLE_MODERATOR
+                        || role.getName() == ERole.ROLE_USER
+        );
+        if (!userOrModOrAdmin) {
+            throw new UserNotAuthorizedException(String.format(user.getUsername()));
+        }
+
         return authorRepository.save(author);
     }
 
-    public Author updateAuthor(Long id, AuthorDTO authorDTO) {
+    public Author updateAuthor(Long id, AuthorDTO authorDTO, Long userID) {
         Author author = authorRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Author not found"));
+        User user = this.userRepository.findById(userID).orElseThrow(() -> new UserNotFoundException(userID));
+        boolean isUser = user.getRoles().stream().anyMatch((role) ->
+                role.getName() == ERole.ROLE_USER
+        );
+        if (!isUser) {
+            throw new UserNotAuthorizedException(String.format(user.getUsername()));
+        }
+
+        if (!Objects.equals(user.getId(), author.getUser().getId())) {
+            boolean modOrAdmin = user.getRoles().stream().anyMatch((role) ->
+                    role.getName() == ERole.ROLE_ADMIN || role.getName() == ERole.ROLE_MODERATOR
+            );
+
+            if (!modOrAdmin) {
+                throw new UserNotAuthorizedException(String.format(user.getUsername()));
+            }
+        }
+
         author.setName(authorDTO.getName());
         author.setEmail(authorDTO.getEmail());
         author.setBio(authorDTO.getBio());
         author.setCountry(authorDTO.getCountry());
         author.setBooks(author.getBooks());
+        author.setUser(user);
         return authorRepository.save(author);
     }
 
-    public void deleteAuthor(Long id) {
+    public void deleteAuthor(Long id, Long userID) {
         Author author = authorRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Author not found"));
+        User user = this.userRepository.findById(userID).orElseThrow(() -> new UserNotFoundException(userID));
+
+        boolean isAdmin = user.getRoles().stream().anyMatch((role) ->
+                role.getName() == ERole.ROLE_ADMIN
+        );
+        if (!isAdmin) {
+            throw new UserNotAuthorizedException(String.format(user.getUsername()));
+        }
+
         authorRepository.delete(author);
     }
 

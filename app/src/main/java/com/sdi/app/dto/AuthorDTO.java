@@ -21,4 +21,6 @@ public class AuthorDTO {
 
     private int booksCount;
 
+    private String username;
+
 }

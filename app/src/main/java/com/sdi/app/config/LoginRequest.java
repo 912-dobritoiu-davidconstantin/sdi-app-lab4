@@ -1,4 +1,4 @@
-package com.sdi.app.dto;
+package com.sdi.app.config;
 
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -10,13 +10,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookRequestDTO {
-    @NotBlank(message = "Title is mandatory")
-    private String title;
+public class LoginRequest {
 
-    private int year;
+    @NotBlank
+    private String username;
 
-    private double price;
+    @NotBlank
+    private String password;
 
-    private int rating;
 }

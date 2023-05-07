@@ -1,25 +1,29 @@
 package com.sdi.app.controller;
 
-import com.sdi.app.dto.AuthorDTO;
+import com.sdi.app.config.JwtUtils;
 import com.sdi.app.dto.LibraryAllDTO;
 import com.sdi.app.dto.LibraryDTO;
 import com.sdi.app.dto.LibraryStatisticsDTO;
 import com.sdi.app.model.Library;
+import com.sdi.app.model.User;
 import com.sdi.app.service.LibraryService;
+import com.sdi.app.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Set;
-
+@CrossOrigin(allowCredentials = "true", origins = {"http://localhost:8080", "https://lively-mochi-dbc1b6.netlify.app"})
 @RestController
 @RequestMapping("/api/libraries")
 public class LibraryController {
 
     private final LibraryService libraryService;
+    private final JwtUtils jwtUtils;
+    private final UserService userService;
 
-    public LibraryController(LibraryService libraryService) {
+    public LibraryController(LibraryService libraryService, JwtUtils jwtUtils, UserService userService) {
         this.libraryService = libraryService;
+        this.jwtUtils = jwtUtils;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -33,18 +37,24 @@ public class LibraryController {
     }
 
     @PostMapping
-    public Library createLibrary(@RequestBody LibraryDTO libraryDTO) {
-        return libraryService.createLibrary(libraryDTO);
+    public Library createLibrary(@RequestBody LibraryDTO libraryDTO, @RequestHeader("Authorization") String token) {
+        String username = this.jwtUtils.getUserNameFromJwtToken(token);
+        User user = this.userService.getUserByUsername(username);
+        return libraryService.createLibrary(libraryDTO, user.getId());
     }
 
     @PutMapping("/{id}")
-    public Library updateLibrary(@PathVariable Long id, @RequestBody LibraryDTO libraryDTO) {
-        return libraryService.updateLibrary(id, libraryDTO);
+    public Library updateLibrary(@PathVariable Long id, @RequestBody LibraryDTO libraryDTO, @RequestHeader("Authorization") String token) {
+        String username = this.jwtUtils.getUserNameFromJwtToken(token);
+        User user = this.userService.getUserByUsername(username);
+        return libraryService.updateLibrary(id, libraryDTO, user.getId());
     }
 
     @DeleteMapping("/{id}")
-    public void deleteLibrary(@PathVariable Long id) {
-        libraryService.deleteLibrary(id);
+    public void deleteLibrary(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        String username = this.jwtUtils.getUserNameFromJwtToken(token);
+        User user = this.userService.getUserByUsername(username);
+        libraryService.deleteLibrary(id, user.getId());
     }
 
     @GetMapping("/getLibrariesTop")

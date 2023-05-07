@@ -1,15 +1,15 @@
 package com.sdi.app.service;
 
 import com.sdi.app.dto.*;
-import com.sdi.app.model.Author;
-import com.sdi.app.model.Book;
-import com.sdi.app.model.LibraryBook;
+import com.sdi.app.exception.UserNotAuthorizedException;
+import com.sdi.app.exception.UserNotFoundException;
+import com.sdi.app.model.*;
 import com.sdi.app.repository.AuthorRepository;
 import com.sdi.app.repository.BookRepository;
 import com.sdi.app.repository.LibraryBookRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.sdi.app.repository.UserRepository;
+import javax.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -24,22 +24,21 @@ import java.util.stream.Collectors;
 @Service
 public class BookService {
 
-    @Autowired
     private final BookRepository bookRepository;
 
-    @Autowired
     private final AuthorRepository authorRepository;
 
-    @Autowired
     private final LibraryBookRepository libraryBookRepository;
 
-    @Autowired
+    private final UserRepository userRepository;
+
     private ModelMapper modelMapper;
 
-    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, LibraryBookRepository libraryBookRepository, ModelMapper modelMapper) {
+    public BookService(BookRepository bookRepository, AuthorRepository authorRepository, LibraryBookRepository libraryBookRepository, UserRepository userRepository, ModelMapper modelMapper) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
         this.libraryBookRepository = libraryBookRepository;
+        this.userRepository = userRepository;
         this.modelMapper = modelMapper;
     }
 
@@ -73,25 +72,56 @@ public class BookService {
     }
 
 
-    public Book createBook(BookWithAuthorIDDTO bookDTO) {
+    public Book createBook(BookWithAuthorIDDTO bookDTO, Long userID) {
         Author author = authorRepository.findById(bookDTO.getAuthorId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Author not found"));
-        Book book = new Book(null, bookDTO.getTitle(), bookDTO.getYear(), bookDTO.getPrice(), bookDTO.getRating(), author, new HashSet<>());
+        User user = this.userRepository.findById(userID).orElseThrow(() -> new UserNotFoundException(userID));
+
+        boolean userOrModOrAdmin = user.getRoles().stream().anyMatch((role) ->
+                role.getName() == ERole.ROLE_ADMIN
+                        || role.getName() == ERole.ROLE_MODERATOR
+                        || role.getName() == ERole.ROLE_USER
+        );
+        if (!userOrModOrAdmin) {
+            throw new UserNotAuthorizedException(String.format(user.getUsername()));
+        }
+        Book book = new Book(null, bookDTO.getTitle(), bookDTO.getYear(), bookDTO.getPrice(), bookDTO.getRating(), author, new HashSet<>(), user);
         return bookRepository.save(book);
     }
 
-    public Book updateBook(Long id, BookWithAuthorIDDTO bookDTO) {
+    public Book updateBook(Long id, BookWithAuthorIDDTO bookDTO, Long userID) {
         Author author = authorRepository.findById(bookDTO.getAuthorId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Author not found"));
         Book book = bookRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found"));
+        User user = this.userRepository.findById(userID).orElseThrow(() -> new UserNotFoundException(userID));
+        boolean userOrModOrAdmin = user.getRoles().stream().anyMatch((role) ->
+                role.getName() == ERole.ROLE_ADMIN
+                        || role.getName() == ERole.ROLE_MODERATOR
+                        || role.getName() == ERole.ROLE_USER
+        );
+        if (!userOrModOrAdmin) {
+            throw new UserNotAuthorizedException(String.format(user.getUsername()));
+        }
         book.setTitle(bookDTO.getTitle());
         book.setYear(bookDTO.getYear());
         book.setPrice(bookDTO.getPrice());
         book.setRating(bookDTO.getRating());
         book.setAuthor(author);
+        book.setUser(user);
         return bookRepository.save(book);
     }
 
-    public void deleteBook(Long id) {
+    public void deleteBook(Long id, Long userID) {
         Book book = bookRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found"));
+        User user = this.userRepository.findById(userID).orElseThrow(() -> new UserNotFoundException(userID));
+
+        boolean userOrModOrAdmin = user.getRoles().stream().anyMatch((role) ->
+                role.getName() == ERole.ROLE_ADMIN
+                        || role.getName() == ERole.ROLE_MODERATOR
+                        || role.getName() == ERole.ROLE_USER
+        );
+        if (!userOrModOrAdmin) {
+            throw new UserNotAuthorizedException(String.format(user.getUsername()));
+        }
+
         bookRepository.delete(book);
     }
 

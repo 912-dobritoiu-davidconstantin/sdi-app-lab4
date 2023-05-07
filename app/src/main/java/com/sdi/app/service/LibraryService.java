@@ -1,17 +1,19 @@
 package com.sdi.app.service;
 
 import com.sdi.app.dto.*;
-import com.sdi.app.model.Author;
+import com.sdi.app.exception.UserNotAuthorizedException;
+import com.sdi.app.exception.UserNotFoundException;
+import com.sdi.app.model.ERole;
 import com.sdi.app.model.Library;
 import com.sdi.app.model.LibraryBook;
+import com.sdi.app.model.User;
 import com.sdi.app.repository.LibraryRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.sdi.app.repository.UserRepository;
+import javax.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,14 +24,16 @@ import java.util.stream.Collectors;
 @Service
 public class LibraryService {
 
-    @Autowired
     private final LibraryRepository libraryRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
-    public LibraryService(LibraryRepository libraryRepository) {
+    private final UserRepository userRepository;
+
+    public LibraryService(LibraryRepository libraryRepository, ModelMapper modelMapper, UserRepository userRepository) {
         this.libraryRepository = libraryRepository;
+        this.modelMapper = modelMapper;
+        this.userRepository = userRepository;
     }
 
     public Page<LibraryAllDTO> getAllLibraries(int pageNumber, int pageSize) {
@@ -61,13 +65,31 @@ public class LibraryService {
         return libraryDTO;
     }
 
-    public Library createLibrary(LibraryDTO libraryDTO) {
-        Library library = new Library(null, libraryDTO.getName(), libraryDTO.getDescription(), libraryDTO.getLocation(), libraryDTO.getRating(), libraryDTO.getOwner(), new HashSet<>());
+    public Library createLibrary(LibraryDTO libraryDTO, Long userID) {
+        User user = this.userRepository.findById(userID).orElseThrow(() -> new UserNotFoundException(userID));
+        boolean userOrModOrAdmin = user.getRoles().stream().anyMatch((role) ->
+                role.getName() == ERole.ROLE_ADMIN
+                        || role.getName() == ERole.ROLE_MODERATOR
+                        || role.getName() == ERole.ROLE_USER
+        );
+        if (!userOrModOrAdmin) {
+            throw new UserNotAuthorizedException(String.format(user.getUsername()));
+        }
+        Library library = new Library(null, libraryDTO.getName(), libraryDTO.getDescription(), libraryDTO.getLocation(), libraryDTO.getRating(), libraryDTO.getOwner(), new HashSet<>(), user);
         return libraryRepository.save(library);
     }
 
-    public Library updateLibrary(Long id, LibraryDTO libraryDTO) {
+    public Library updateLibrary(Long id, LibraryDTO libraryDTO, Long userID) {
+        User user = this.userRepository.findById(userID).orElseThrow(() -> new UserNotFoundException(userID));
         Library library = libraryRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Library not found"));
+        boolean userOrModOrAdmin = user.getRoles().stream().anyMatch((role) ->
+                role.getName() == ERole.ROLE_ADMIN
+                        || role.getName() == ERole.ROLE_MODERATOR
+                        || role.getName() == ERole.ROLE_USER
+        );
+        if (!userOrModOrAdmin) {
+            throw new UserNotAuthorizedException(String.format(user.getUsername()));
+        }
         library.setName(libraryDTO.getName());
         library.setDescription(libraryDTO.getDescription());
         library.setLocation(libraryDTO.getLocation());
@@ -76,8 +98,17 @@ public class LibraryService {
         return libraryRepository.save(library);
     }
 
-    public void deleteLibrary(Long id) {
+    public void deleteLibrary(Long id, Long userID) {
         Library library = libraryRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Library not found"));
+        User user = this.userRepository.findById(userID).orElseThrow(() -> new UserNotFoundException(userID));
+        boolean userOrModOrAdmin = user.getRoles().stream().anyMatch((role) ->
+                role.getName() == ERole.ROLE_ADMIN
+                        || role.getName() == ERole.ROLE_MODERATOR
+                        || role.getName() == ERole.ROLE_USER
+        );
+        if (!userOrModOrAdmin) {
+            throw new UserNotAuthorizedException(String.format(user.getUsername()));
+        }
         libraryRepository.delete(library);
     }
 

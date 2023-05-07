@@ -24,4 +24,6 @@ public class LibraryAllDTO {
     private String owner;
 
     private int booksCount;
+
+    private String username;
 }

@@ -20,4 +20,6 @@ public class LibraryBookDTO {
     private Date borrowDate;
 
     private Date returnDate;
+
+    private String username;
 }

@@ -19,4 +19,6 @@ public class BookWithAuthorIDDTO {
     private int rating;
 
     private Long authorId;
+
+    private String username;
 }
