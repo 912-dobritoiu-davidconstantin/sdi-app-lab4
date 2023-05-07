@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(allowCredentials = "true", origins = {"http://localhost:8080", "https://lively-mochi-dbc1b6.netlify.app"})
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api")
 @Validated
 public class AuthController {
     AuthenticationManager authenticationManager;
