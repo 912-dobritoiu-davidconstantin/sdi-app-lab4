@@ -47,7 +47,6 @@ public class BookService {
         Page<Book> books = bookRepository.findAll(pageRequest);
         List<BookWithAuthorIDDTO> bookDTOs = new ArrayList<>(books.stream()
                 .map(book -> modelMapper.map(book, BookWithAuthorIDDTO.class)).toList());
-        Collections.shuffle(bookDTOs);
         return new PageImpl<>(bookDTOs, pageRequest, books.getTotalElements());
     }
 

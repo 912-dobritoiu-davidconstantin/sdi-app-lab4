@@ -35,8 +35,8 @@ public class SQLController {
         this.userService = userService;
     }
 
-    @PostMapping("/run-delete-cars-script")
-    ResponseEntity<?> deleteAllCars(@RequestHeader("Authorization") String token) {
+    @PostMapping("/run-delete-authors-script")
+    ResponseEntity<?> deleteAllAuthors(@RequestHeader("Authorization") String token) {
         String username = this.jwtUtils.getUserNameFromJwtToken(token);
         User user = this.userService.getUserByUsername(username);
 
@@ -49,11 +49,11 @@ public class SQLController {
         }
         try {
             String currentDir = System.getProperty("user.dir");
-            String sql = Files.readString(Paths.get(currentDir + "/src/main/java/hw4/hw4/SQLScripts/delete_cars.sql"));
+            String sql = Files.readString(Paths.get(currentDir + "../delete_authors.sql"));
             jdbcTemplate.update(sql);
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Successfully deleted all cars"));
+                    .body(new SQLRunResponseDTO("Successfully deleted all authors"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
@@ -61,8 +61,8 @@ public class SQLController {
         }
     }
 
-    @PostMapping("/run-delete-pilots-script")
-    ResponseEntity<?> deleteAllPilots(@RequestHeader("Authorization") String token) {
+    @PostMapping("/run-delete-books-script")
+    ResponseEntity<?> deleteAllBooks(@RequestHeader("Authorization") String token) {
         String username = this.jwtUtils.getUserNameFromJwtToken(token);
         User user = this.userService.getUserByUsername(username);
 
@@ -75,21 +75,20 @@ public class SQLController {
         }
         try {
             String currentDir = System.getProperty("user.dir");
-//            String sql = Files.readString(Paths.get(currentDir + "\\src\\main\\java\\hw4\\hw4\\SQLScripts\\delete_pilots.sql"));
-            String sql = Files.readString(Paths.get(currentDir + "/src/main/java/hw4/hw4/SQLScripts/delete_pilots.sql"));
+            String sql = Files.readString(Paths.get(currentDir + "../delete_books.sql"));
             jdbcTemplate.update(sql);
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Successfully deleted all pilots"));
+                    .body(new SQLRunResponseDTO("Successfully deleted all books"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Error: something went wrong (make sure you deleted participations first)"));
+                    .body(new SQLRunResponseDTO("Error: something went wrong (make sure you deleted librarybooks first)"));
         }
     }
 
-    @PostMapping("/run-delete-races-script")
-    ResponseEntity<?> deleteAllRaces(@RequestHeader("Authorization") String token) {
+    @PostMapping("/run-delete-libraries-script")
+    ResponseEntity<?> deleteAllLibraries(@RequestHeader("Authorization") String token) {
         String username = this.jwtUtils.getUserNameFromJwtToken(token);
         User user = this.userService.getUserByUsername(username);
 
@@ -102,21 +101,20 @@ public class SQLController {
         }
         try {
             String currentDir = System.getProperty("user.dir");
-//            String sql = Files.readString(Paths.get(currentDir + "\\src\\main\\java\\hw4\\hw4\\SQLScripts\\delete_races.sql"));
-            String sql = Files.readString(Paths.get(currentDir + "/src/main/java/hw4/hw4/SQLScripts/delete_races.sql"));
+            String sql = Files.readString(Paths.get(currentDir + "../delete_libraries.sql"));
             jdbcTemplate.update(sql);
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Successfully deleted all races"));
+                    .body(new SQLRunResponseDTO("Successfully deleted all libraries"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Error: something went wrong (make sure you deleted participations first)"));
+                    .body(new SQLRunResponseDTO("Error: something went wrong (make sure you deleted librarybooks first)"));
         }
     }
 
-    @PostMapping("/run-delete-participations-script")
-    ResponseEntity<?> deleteAllParticipations(@RequestHeader("Authorization") String token) {
+    @PostMapping("/run-delete-librarybooks-script")
+    ResponseEntity<?> deleteAllLibraryBooks(@RequestHeader("Authorization") String token) {
         String username = this.jwtUtils.getUserNameFromJwtToken(token);
         User user = this.userService.getUserByUsername(username);
 
@@ -129,12 +127,11 @@ public class SQLController {
         }
         try {
             String currentDir = System.getProperty("user.dir");
-//            String sql = Files.readString(Paths.get(currentDir + "\\src\\main\\java\\hw4\\hw4\\SQLScripts\\delete_participations.sql"));
-            String sql = Files.readString(Paths.get(currentDir + "/src/main/java/hw4/hw4/SQLScripts/delete_participations.sql"));
+            String sql = Files.readString(Paths.get(currentDir + "../delete_librarybooks.sql"));
             jdbcTemplate.update(sql);
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Successfully deleted all participations"));
+                    .body(new SQLRunResponseDTO("Successfully deleted all librarybooks"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
@@ -142,8 +139,8 @@ public class SQLController {
         }
     }
 
-    @PostMapping("/run-insert-cars-script")
-    ResponseEntity<?> insertAllCars(@RequestHeader("Authorization") String token) {
+    @PostMapping("/run-insert-authors-script")
+    ResponseEntity<?> insertAllAuthors(@RequestHeader("Authorization") String token) {
         String username = this.jwtUtils.getUserNameFromJwtToken(token);
         User user = this.userService.getUserByUsername(username);
 
@@ -156,8 +153,7 @@ public class SQLController {
         }
         try {
             String currentDir = System.getProperty("user.dir");
-//            String fullPath = currentDir + "\\src\\main\\java\\hw4\\hw4\\SQLScripts\\insert_cars.sql";
-            String fullPath = currentDir + "/src/main/java/hw4/hw4/SQLScripts/insert_cars.sql";
+            String fullPath = currentDir + "../insert_authors.sql";
             BufferedReader reader = new BufferedReader(new FileReader(fullPath));
             String line;
             while ((line = reader.readLine()) != null) {
@@ -167,16 +163,16 @@ public class SQLController {
             reader.close();
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Successfully inserted all cars"));
+                    .body(new SQLRunResponseDTO("Successfully inserted all authors"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Error: something went wrong (make sure you inserted the pilots first)"));
+                    .body(new SQLRunResponseDTO("Error: something went wrong (make sure you inserted the books first)"));
         }
     }
 
-    @PostMapping("/run-insert-pilots-script")
-    ResponseEntity<?> insertAllPilots(@RequestHeader("Authorization") String token) {
+    @PostMapping("/run-insert-books-script")
+    ResponseEntity<?> insertAllBooks(@RequestHeader("Authorization") String token) {
         String username = this.jwtUtils.getUserNameFromJwtToken(token);
         User user = this.userService.getUserByUsername(username);
 
@@ -189,8 +185,7 @@ public class SQLController {
         }
         try {
             String currentDir = System.getProperty("user.dir");
-//            String fullPath = currentDir + "\\src\\main\\java\\hw4\\hw4\\SQLScripts\\insert_pilots.sql";
-            String fullPath = currentDir + "/src/main/java/hw4/hw4/SQLScripts/insert_pilots.sql";
+            String fullPath = currentDir + "../insert_books.sql";
             BufferedReader reader = new BufferedReader(new FileReader(fullPath));
             String line;
             while ((line = reader.readLine()) != null) {
@@ -200,7 +195,7 @@ public class SQLController {
             reader.close();
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Successfully inserted all pilots"));
+                    .body(new SQLRunResponseDTO("Successfully inserted all books"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
@@ -208,8 +203,8 @@ public class SQLController {
         }
     }
 
-    @PostMapping("/run-insert-races-script")
-    ResponseEntity<?> insertAllRaces(@RequestHeader("Authorization") String token) {
+    @PostMapping("/run-insert-libraries-script")
+    ResponseEntity<?> insertAllLibraries(@RequestHeader("Authorization") String token) {
         String username = this.jwtUtils.getUserNameFromJwtToken(token);
         User user = this.userService.getUserByUsername(username);
 
@@ -222,8 +217,7 @@ public class SQLController {
         }
         try {
             String currentDir = System.getProperty("user.dir");
-//            String fullPath = currentDir + "\\src\\main\\java\\hw4\\hw4\\SQLScripts\\insert_races.sql";
-            String fullPath = currentDir + "/src/main/java/hw4/hw4/SQLScripts/insert_races.sql";
+            String fullPath = currentDir + "../insert_libraries.sql";
             BufferedReader reader = new BufferedReader(new FileReader(fullPath));
             String line;
             while ((line = reader.readLine()) != null) {
@@ -233,7 +227,7 @@ public class SQLController {
             reader.close();
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Successfully inserted all races"));
+                    .body(new SQLRunResponseDTO("Successfully inserted all libraries"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
@@ -241,8 +235,8 @@ public class SQLController {
         }
     }
 
-    @PostMapping("/run-insert-participations-script")
-    ResponseEntity<?> insertAllParticipations(@RequestHeader("Authorization") String token) {
+    @PostMapping("/run-insert-librarybooks-script")
+    ResponseEntity<?> insertAllLibraryBooks(@RequestHeader("Authorization") String token) {
         String username = this.jwtUtils.getUserNameFromJwtToken(token);
         User user = this.userService.getUserByUsername(username);
 
@@ -255,7 +249,7 @@ public class SQLController {
         }
         try {
             String currentDir = System.getProperty("user.dir");
-            String fullPath = currentDir + "/src/main/java/hw4/hw4/SQLScripts/insert_participations.sql";
+            String fullPath = currentDir + "../insert_librarybooks.sql";
             BufferedReader reader = new BufferedReader(new FileReader(fullPath));
             String line;
             while ((line = reader.readLine()) != null) {
@@ -265,11 +259,11 @@ public class SQLController {
             reader.close();
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Successfully inserted all participations"));
+                    .body(new SQLRunResponseDTO("Successfully inserted all librarybooks"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Error: something went wrong (make sure you inserted races and pilots first)"));
+                    .body(new SQLRunResponseDTO("Error: something went wrong (make sure you inserted libraries and books first)"));
         }
     }
 }
