@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @CrossOrigin(allowCredentials = "true", origins = {"http://localhost:8080", "https://lively-mochi-dbc1b6.netlify.app"})
@@ -154,22 +155,25 @@ public class SQLController {
         try {
             String currentDir = System.getProperty("user.dir");
             String fullPath = currentDir + "/../insert_authors.sql";
-            BufferedReader reader = new BufferedReader(new FileReader(fullPath));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                jdbcTemplate.update(line);
+            Path filePath = Paths.get(fullPath);
+            String sql = Files.readString(filePath);
+            String[] queries = sql.split(";");
+            for (String query : queries) {
+                query = query.trim();
+                if (!query.isEmpty()) {
+                    jdbcTemplate.update(query);
+                }
             }
-            reader.close();
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(new SQLRunResponseDTO("Successfully inserted all authors"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Error: something went wrong (make sure you inserted the books first)"));
+                    .body(new SQLRunResponseDTO("Error: something went wrong"));
         }
     }
+
 
     @PostMapping("/run-insert-books-script")
     ResponseEntity<?> insertAllBooks(@RequestHeader("Authorization") String token) {
