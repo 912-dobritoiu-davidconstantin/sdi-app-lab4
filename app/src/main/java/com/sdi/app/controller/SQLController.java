@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.SqlParameter;
-import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,9 +17,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Types;
-import java.util.HashMap;
-import java.util.Map;
 
 @CrossOrigin(allowCredentials = "true", origins = {"http://localhost:8080", "https://lively-mochi-dbc1b6.netlify.app"})
 @RestController
@@ -184,59 +179,58 @@ public class SQLController {
 
 
 
-    @PostMapping("/run-insert-books-script")
-    ResponseEntity<?> insertAllBooks(@RequestHeader("Authorization") String token) {
-        String username = this.jwtUtils.getUserNameFromJwtToken(token);
-        User user = this.userService.getUserByUsername(username);
+    import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 
-        boolean isAdmin = user.getRoles().stream().anyMatch((role) ->
-                role.getName() == ERole.ROLE_ADMIN
-        );
+import java.nio.file.*;
+import java.util.*;
 
-        if (!isAdmin) {
-            throw new UserNotAuthorizedException(String.format(user.getUsername()));
-        }
+    @RestController
+    public class InsertBooksController {
 
-        try {
-            String currentDir = System.getProperty("user.dir");
-            String fullPath = currentDir + "/../insert_books.sql";
+        @PostMapping("/run-insert-books-script")
+        public ResponseEntity<?> insertAllBooks(@RequestHeader("Authorization") String token) {
+            String username = this.jwtUtils.getUserNameFromJwtToken(token);
+            User user = this.userService.getUserByUsername(username);
 
-            // Read the file content into a String
-            String fileContent = new String(Files.readAllBytes(Paths.get(fullPath)));
+            boolean isAdmin = user.getRoles().stream().anyMatch((role) ->
+                    role.getName() == ERole.ROLE_ADMIN
+            );
 
-            // Create the SimpleJdbcCall with the script content and set the script as the SQL statement
-            SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
-                    .withProcedureName("insert_books")
-                    .withoutProcedureColumnMetaDataAccess()
-                    .declareParameters(
-                            new SqlParameter("script", Types.VARCHAR)
-                    )
-                    .withReturnValue();
+            if (!isAdmin) {
+                throw new UserNotAuthorizedException(String.format(user.getUsername()));
+            }
 
-            // Create the script parameter map
-            Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put("script", fileContent);
+            try {
+                String currentDir = System.getProperty("user.dir");
+                String fullPath = currentDir + "/../insert_books.sql";
 
-            // Execute the script using SimpleJdbcCall
-            Map<String, Object> result = jdbcCall.execute(paramMap);
+                String fileContent = new String(Files.readAllBytes(Paths.get(fullPath)));
 
-            // Check the result
-            int returnValue = (int) result.get("#update-count-1");
-            if (returnValue >= 0) {
+                // Split the SQL script by the delimiter "--"
+                String[] statements = fileContent.split("--");
+
+                // Execute each statement
+                for (String statement : statements) {
+                    statement = statement.trim();
+                    System.out.println(statement);
+                    if (!statement.isEmpty()) {
+                        // Execute the statement using Spring JDBC
+                        jdbcTemplate.execute(statement);
+                    }
+                }
+
                 return ResponseEntity
                         .status(HttpStatus.OK)
                         .body(new SQLRunResponseDTO("Successfully inserted all books"));
-            } else {
+            } catch (Exception e) {
                 return ResponseEntity
                         .status(HttpStatus.OK)
                         .body(new SQLRunResponseDTO("Error: something went wrong"));
             }
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Error: something went wrong"));
         }
     }
+
 
     @PostMapping("/run-insert-libraries-script")
     ResponseEntity<?> insertAllLibraries(@RequestHeader("Authorization") String token) {
