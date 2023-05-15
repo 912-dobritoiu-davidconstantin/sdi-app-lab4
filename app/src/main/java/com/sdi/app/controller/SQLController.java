@@ -151,27 +151,26 @@ public class SQLController {
         if (!isAdmin) {
             throw new UserNotAuthorizedException(String.format(user.getUsername()));
         }
+
         try {
             String currentDir = System.getProperty("user.dir");
             String fullPath = currentDir + "/../insert_authors.sql";
-            BufferedReader reader = new BufferedReader(new FileReader(fullPath));
-            String line;
-            StringBuilder sqlBuilder = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (!line.isEmpty()) {
-                    sqlBuilder.append(line);
-                    if (line.endsWith(";")) {
-                        String sql = sqlBuilder.toString();
-                        System.out.println(sql);
-                        jdbcTemplate.execute(sql);
-                        sqlBuilder.setLength(0);
-                    } else {
-                        sqlBuilder.append(" ");
-                    }
+
+            // Read the file content into a String
+            String fileContent = new String(Files.readAllBytes(Paths.get(fullPath)));
+
+            // Split the content into individual SQL statements based on the semicolon delimiter
+            String[] statements = fileContent.split(";");
+
+            // Execute each SQL statement individually
+            for (String statement : statements) {
+                statement = statement.trim();
+                System.out.println(statement);
+                if (!statement.isEmpty()) {
+                    jdbcTemplate.execute(statement);
                 }
             }
-            reader.close();
+
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(new SQLRunResponseDTO("Successfully inserted all authors"));
@@ -181,6 +180,7 @@ public class SQLController {
                     .body(new SQLRunResponseDTO("Error: something went wrong"));
         }
     }
+
 
 
     @PostMapping("/run-insert-books-script")
