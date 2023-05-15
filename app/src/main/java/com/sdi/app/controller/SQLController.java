@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Types;
+import java.util.HashMap;
+import java.util.Map;
 
 @CrossOrigin(allowCredentials = "true", origins = {"http://localhost:8080", "https://lively-mochi-dbc1b6.netlify.app"})
 @RestController
@@ -75,15 +80,42 @@ public class SQLController {
         }
         try {
             String currentDir = System.getProperty("user.dir");
-            String sql = Files.readString(Paths.get(currentDir + "/../delete_books.sql"));
-            jdbcTemplate.update(sql);
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Successfully deleted all books"));
+            String fullPath = currentDir + "/../insert_books.sql";
+
+            // Read the file content into a String
+            String fileContent = new String(Files.readAllBytes(Paths.get(fullPath)));
+
+            // Create the SimpleJdbcCall with the script content and set the script as the SQL statement
+            SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
+                    .withProcedureName("insert_books")
+                    .withoutProcedureColumnMetaDataAccess()
+                    .declareParameters(
+                            new SqlParameter("script", Types.VARCHAR)
+                    )
+                    .withReturnValue();
+
+            // Create the script parameter map
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put("script", fileContent);
+
+            // Execute the script using SimpleJdbcCall
+            Map<String, Object> result = jdbcCall.execute(paramMap);
+
+            // Check the result
+            int returnValue = (int) result.get("#update-count-1");
+            if (returnValue >= 0) {
+                return ResponseEntity
+                        .status(HttpStatus.OK)
+                        .body(new SQLRunResponseDTO("Successfully inserted all books"));
+            } else {
+                return ResponseEntity
+                        .status(HttpStatus.OK)
+                        .body(new SQLRunResponseDTO("Error: something went wrong"));
+            }
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Error: something went wrong (make sure you deleted librarybooks first)"));
+                    .body(new SQLRunResponseDTO("Error: something went wrong"));
         }
     }
 
@@ -162,7 +194,6 @@ public class SQLController {
 
             for (String statement : statements) {
                 statement = statement.trim();
-                System.out.println(statement);
                 if (!statement.isEmpty()) {
                     jdbcTemplate.execute(statement);
                 }
@@ -203,7 +234,6 @@ public class SQLController {
 
             for (String statement : statements) {
                 statement = statement.trim();
-                System.out.println(statement);
                 if (!statement.isEmpty()) {
                     jdbcTemplate.execute(statement);
                 }
@@ -242,7 +272,6 @@ public class SQLController {
 
             for (String statement : statements) {
                 statement = statement.trim();
-                System.out.println(statement);
                 if (!statement.isEmpty()) {
                     jdbcTemplate.execute(statement);
                 }
@@ -281,7 +310,6 @@ public class SQLController {
 
             for (String statement : statements) {
                 statement = statement.trim();
-                System.out.println(statement);
                 if (!statement.isEmpty()) {
                     jdbcTemplate.execute(statement);
                 }
