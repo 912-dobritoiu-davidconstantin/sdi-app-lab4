@@ -153,14 +153,23 @@ public class SQLController {
         }
         try {
             String currentDir = System.getProperty("user.dir");
-            System.out.println(currentDir);
             String fullPath = currentDir + "/../insert_authors.sql";
             BufferedReader reader = new BufferedReader(new FileReader(fullPath));
             String line;
+            StringBuilder sqlBuilder = new StringBuilder();
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
-                System.out.println(line);
-                jdbcTemplate.update(line);
+                if (!line.isEmpty()) {
+                    sqlBuilder.append(line);
+                    if (line.endsWith(";")) {
+                        String sql = sqlBuilder.toString();
+                        System.out.println(sql);
+                        jdbcTemplate.execute(sql);
+                        sqlBuilder.setLength(0);
+                    } else {
+                        sqlBuilder.append(" ");
+                    }
+                }
             }
             reader.close();
             return ResponseEntity
@@ -172,6 +181,7 @@ public class SQLController {
                     .body(new SQLRunResponseDTO("Error: something went wrong"));
         }
     }
+
 
     @PostMapping("/run-insert-books-script")
     ResponseEntity<?> insertAllBooks(@RequestHeader("Authorization") String token) {
