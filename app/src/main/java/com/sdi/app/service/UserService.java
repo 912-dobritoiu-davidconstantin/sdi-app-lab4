@@ -82,7 +82,7 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(id));
 
         boolean isUser = user.getRoles().stream().anyMatch((role) ->
-                role.getName() == ERole.ROLE_USER
+                role.getName() == ERole.ROLE_USER || role.getName() == ERole.ROLE_ADMIN
         );
         if (!isUser) {
             throw new UserNotAuthorizedException(String.format(user.getUsername()));
