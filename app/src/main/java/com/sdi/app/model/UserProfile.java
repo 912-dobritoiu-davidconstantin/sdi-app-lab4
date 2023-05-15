@@ -4,6 +4,8 @@ import javax.persistence.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Past;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,8 +36,7 @@ public class UserProfile {
     private String location;
 
     @Column
-    @Min(value = 1900, message = "Year must be greater than or equal to 1900")
-    @Max(value = 2023, message = "Year must be less than or equal to 2023")
+    @Past(message = "Date of Birth must be in the past")
     private Date birthdate;
 
     @Column
