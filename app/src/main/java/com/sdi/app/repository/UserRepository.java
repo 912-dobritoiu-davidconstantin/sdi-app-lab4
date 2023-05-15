@@ -15,10 +15,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Boolean existsByUsername(String username);
 
-    @Query(value = "SELECT * FROM users " +
-            "WHERE to_tsvector('english', username) @@ to_tsquery('english', replace(?1, ' ', ':* & ') || ':*') " +
-            "OR username LIKE ('%' || ?1 || '%') ORDER BY ts_rank(to_tsvector('english', username), " +
-            "to_tsquery('english', replace(?1, ' ', ':* & ') || ':*')) DESC LIMIT 20", nativeQuery = true)
-    List<User> findTop20BySearchTerm(String searchTerm);
+    List<User> findByUsernameContainingIgnoreCaseOrUsernameIsNull(String searchTerm);
+
+
 
 }

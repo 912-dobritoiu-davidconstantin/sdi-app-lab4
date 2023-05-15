@@ -74,7 +74,7 @@ public class UserService {
     public Integer getUserNumberOfLibraryBooksById(Long id) { return libraryBookRepository.findByUserId(id).size();}
 
     public List<User> searchUsersByUsername(String username) {
-        return this.userRepository.findTop20BySearchTerm(username);
+        return this.userRepository.findByUsernameContainingIgnoreCaseOrUsernameIsNull(username);
     }
 
     public UserProfile updateUserProfile(UserProfile newUserProfile, Long id) {
