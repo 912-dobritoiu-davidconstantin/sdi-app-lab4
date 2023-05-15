@@ -179,58 +179,46 @@ public class SQLController {
 
 
 
-    import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
+    @PostMapping("/run-insert-books-script")
+    public ResponseEntity<?> insertAllBooks(@RequestHeader("Authorization") String token) {
+        String username = this.jwtUtils.getUserNameFromJwtToken(token);
+        User user = this.userService.getUserByUsername(username);
 
-import java.nio.file.*;
-import java.util.*;
+        boolean isAdmin = user.getRoles().stream().anyMatch((role) ->
+                role.getName() == ERole.ROLE_ADMIN
+        );
 
-    @RestController
-    public class InsertBooksController {
+        if (!isAdmin) {
+            throw new UserNotAuthorizedException(String.format(user.getUsername()));
+        }
 
-        @PostMapping("/run-insert-books-script")
-        public ResponseEntity<?> insertAllBooks(@RequestHeader("Authorization") String token) {
-            String username = this.jwtUtils.getUserNameFromJwtToken(token);
-            User user = this.userService.getUserByUsername(username);
+        try {
+            String currentDir = System.getProperty("user.dir");
+            String fullPath = currentDir + "/../insert_books.sql";
 
-            boolean isAdmin = user.getRoles().stream().anyMatch((role) ->
-                    role.getName() == ERole.ROLE_ADMIN
-            );
+            String fileContent = new String(Files.readAllBytes(Paths.get(fullPath)));
 
-            if (!isAdmin) {
-                throw new UserNotAuthorizedException(String.format(user.getUsername()));
-            }
+            // Split the SQL script by the delimiter "--"
+            String[] statements = fileContent.split("--");
 
-            try {
-                String currentDir = System.getProperty("user.dir");
-                String fullPath = currentDir + "/../insert_books.sql";
-
-                String fileContent = new String(Files.readAllBytes(Paths.get(fullPath)));
-
-                // Split the SQL script by the delimiter "--"
-                String[] statements = fileContent.split("--");
-
-                // Execute each statement
-                for (String statement : statements) {
-                    statement = statement.trim();
-                    System.out.println(statement);
-                    if (!statement.isEmpty()) {
-                        // Execute the statement using Spring JDBC
-                        jdbcTemplate.execute(statement);
-                    }
+            // Execute each statement
+            for (String statement : statements) {
+                statement = statement.trim();
+                if (!statement.isEmpty()) {
+                    // Execute the statement using Spring JDBC
+                    jdbcTemplate.execute(statement);
                 }
-
-                return ResponseEntity
-                        .status(HttpStatus.OK)
-                        .body(new SQLRunResponseDTO("Successfully inserted all books"));
-            } catch (Exception e) {
-                return ResponseEntity
-                        .status(HttpStatus.OK)
-                        .body(new SQLRunResponseDTO("Error: something went wrong"));
             }
+
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new SQLRunResponseDTO("Successfully inserted all books"));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new SQLRunResponseDTO("Error: something went wrong"));
         }
     }
-
 
     @PostMapping("/run-insert-libraries-script")
     ResponseEntity<?> insertAllLibraries(@RequestHeader("Authorization") String token) {
