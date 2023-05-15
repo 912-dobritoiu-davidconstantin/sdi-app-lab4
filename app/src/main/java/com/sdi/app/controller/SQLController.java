@@ -80,42 +80,15 @@ public class SQLController {
         }
         try {
             String currentDir = System.getProperty("user.dir");
-            String fullPath = currentDir + "/../insert_books.sql";
-
-            // Read the file content into a String
-            String fileContent = new String(Files.readAllBytes(Paths.get(fullPath)));
-
-            // Create the SimpleJdbcCall with the script content and set the script as the SQL statement
-            SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
-                    .withProcedureName("insert_books")
-                    .withoutProcedureColumnMetaDataAccess()
-                    .declareParameters(
-                            new SqlParameter("script", Types.VARCHAR)
-                    )
-                    .withReturnValue();
-
-            // Create the script parameter map
-            Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put("script", fileContent);
-
-            // Execute the script using SimpleJdbcCall
-            Map<String, Object> result = jdbcCall.execute(paramMap);
-
-            // Check the result
-            int returnValue = (int) result.get("#update-count-1");
-            if (returnValue >= 0) {
-                return ResponseEntity
-                        .status(HttpStatus.OK)
-                        .body(new SQLRunResponseDTO("Successfully inserted all books"));
-            } else {
-                return ResponseEntity
-                        .status(HttpStatus.OK)
-                        .body(new SQLRunResponseDTO("Error: something went wrong"));
-            }
+            String sql = Files.readString(Paths.get(currentDir + "/../delete_books.sql"));
+            jdbcTemplate.update(sql);
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new SQLRunResponseDTO("Successfully deleted all books"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Error: something went wrong"));
+                    .body(new SQLRunResponseDTO("Error: something went wrong (make sure you deleted librarybooks first)"));
         }
     }
 
@@ -228,20 +201,36 @@ public class SQLController {
             String currentDir = System.getProperty("user.dir");
             String fullPath = currentDir + "/../insert_books.sql";
 
+            // Read the file content into a String
             String fileContent = new String(Files.readAllBytes(Paths.get(fullPath)));
 
-            String[] statements = fileContent.split(";");
+            // Create the SimpleJdbcCall with the script content and set the script as the SQL statement
+            SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
+                    .withProcedureName("insert_books")
+                    .withoutProcedureColumnMetaDataAccess()
+                    .declareParameters(
+                            new SqlParameter("script", Types.VARCHAR)
+                    )
+                    .withReturnValue();
 
-            for (String statement : statements) {
-                statement = statement.trim();
-                if (!statement.isEmpty()) {
-                    jdbcTemplate.execute(statement);
-                }
+            // Create the script parameter map
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put("script", fileContent);
+
+            // Execute the script using SimpleJdbcCall
+            Map<String, Object> result = jdbcCall.execute(paramMap);
+
+            // Check the result
+            int returnValue = (int) result.get("#update-count-1");
+            if (returnValue >= 0) {
+                return ResponseEntity
+                        .status(HttpStatus.OK)
+                        .body(new SQLRunResponseDTO("Successfully inserted all books"));
+            } else {
+                return ResponseEntity
+                        .status(HttpStatus.OK)
+                        .body(new SQLRunResponseDTO("Error: something went wrong"));
             }
-
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Successfully inserted all books"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
