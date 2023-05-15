@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -152,27 +151,27 @@ public class SQLController {
         if (!isAdmin) {
             throw new UserNotAuthorizedException(String.format(user.getUsername()));
         }
-
         try {
             String currentDir = System.getProperty("user.dir");
+            System.out.println(currentDir);
             String fullPath = currentDir + "/../insert_authors.sql";
-            String sql = Files.readString(Paths.get(fullPath));
-            jdbcTemplate.execute(sql);
-
+            BufferedReader reader = new BufferedReader(new FileReader(fullPath));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                System.out.println(line);
+                jdbcTemplate.update(line);
+            }
+            reader.close();
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(new SQLRunResponseDTO("Successfully inserted all authors"));
-        } catch (IOException e) {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(new SQLRunResponseDTO("Error: Failed to read SQL script file"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(new SQLRunResponseDTO("Error: something went wrong"));
         }
     }
-
 
     @PostMapping("/run-insert-books-script")
     ResponseEntity<?> insertAllBooks(@RequestHeader("Authorization") String token) {
