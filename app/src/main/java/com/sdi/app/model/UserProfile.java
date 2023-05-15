@@ -1,17 +1,12 @@
-package com.sdi.app.model;
-
-import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Past;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
+import javax.persistence.*;
+import javax.validation.constraints.Past;
 import java.util.Date;
 
 @Entity
@@ -36,6 +31,7 @@ public class UserProfile {
 
     @Column
     @Past(message = "Date of Birth must be in the past")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private Date birthdate;
 
     @Column
