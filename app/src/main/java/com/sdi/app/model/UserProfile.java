@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 import java.util.Date;
 
@@ -26,13 +27,11 @@ public class UserProfile {
     private Long id;
 
     @Column
-    @Min(value = 1, message = "Bio must be between 1 and 200")
-    @Max(value = 200, message = "Bio must be between 1 and 200")
+    @Length(min = 1, max = 200, message = "Bio must be between 1 and 200 characters")
     private String bio;
 
     @Column
-    @Min(value = 1, message = "Location must be between 1 and 50")
-    @Max(value = 50, message = "Location must be between 1 and 50")
+    @Length(min = 1, max = 200, message = "Location must be between 1 and 200 characters")
     private String location;
 
     @Column
