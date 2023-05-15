@@ -50,7 +50,8 @@ public class SQLController {
         try {
             String currentDir = System.getProperty("user.dir");
             System.out.println("Current Directory: " + currentDir);
-            String sql = Files.readString(Paths.get(currentDir + "/../../delete_authors.sql"));
+            String sql = Files.readString(Paths.get(currentDir + "/../delete_authors.sql"));
+            System.out.println(sql);
             jdbcTemplate.update(sql);
             return ResponseEntity
                     .status(HttpStatus.OK)
